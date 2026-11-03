@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Azure SQL 5-Min Stress Test" enabled="true">
+      <stringProp name="TestPlan.comments">Full CPU + IO + Log IO stress for Azure SQL Serverless using Entra ID (Managed Identity)</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="server" elementType="Argument">
+            <stringProp name="Argument.name">server</stringProp>
+            <stringProp name="Argument.value">demodbwatcher01.database.windows.net</stringProp>
+          </elementProp>
+          <elementProp name="database" elementType="Argument">
+            <stringProp name="Argument.name">database</stringProp>
+            <stringProp name="Argument.value">AdventureWorksLT</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+
+
+
+      <!-- JDBC Connection Pool -->
+
+      <JDBCDataSource guiclass="TestBeanGUI" testclass="JDBCDataSource" testname="Azure SQL JDBC Pool (SQL Auth)" enabled="true">
+          <stringProp name="dataSource">AzureSQLPool</stringProp>
+          <stringProp name="driver">com.microsoft.sqlserver.jdbc.SQLServerDriver</stringProp>
+          <stringProp name="dbUrl">jdbc:sqlserver://${server}:1433;database=${database};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;</stringProp>
+          <stringProp name="username">dbwatcheradmin</stringProp>
+          <stringProp name="password">Pixel@0573</stringProp>
+          <stringProp name="poolMax">100</stringProp>
+          <stringProp name="timeout">10000</stringProp>
+          <boolProp name="autocommit">true</boolProp>
+      </JDBCDataSource>
+      <hashTree/>
+
+      <!-- Thread Group -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Stress Threads" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,10)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,60)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">300</stringProp>
+        <stringProp name="ThreadGroup.delay">0</stringProp>
+
+        <!-- REQUIRED Loop Controller -->
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">-1</stringProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+
+        <!-- CPU STRESS QUERY -->
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="CPU Stress Query" enabled="true">
+          <stringProp name="dataSource">AzureSQLPool</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">
+SELECT TOP 5000 
+    c.CustomerID, c.FirstName, c.LastName, 
+    a.City, a.StateProvince, a.CountryRegion,
+    (SELECT COUNT(*) FROM SalesLT.SalesOrderHeader h WHERE h.CustomerID = c.CustomerID) AS Orders
+FROM SalesLT.Customer c
+JOIN SalesLT.CustomerAddress ca ON c.CustomerID = ca.CustomerID
+JOIN SalesLT.Address a ON ca.AddressID = a.AddressID
+WHERE a.City LIKE '%o%' OR a.City LIKE '%a%'
+ORDER BY c.CustomerID DESC;
+          </stringProp>
+        </JDBCSampler>
+        <hashTree/>
+
+        <!-- IO STRESS QUERY -->
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="IO Stress Query" enabled="true">
+          <stringProp name="dataSource">AzureSQLPool</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">
+SELECT *
+FROM SalesLT.Product
+WHERE ListPrice > 0
+OPTION (MAXDOP 8);
+          </stringProp>
+        </JDBCSampler>
+        <hashTree/>
+
+        <!-- LOG IO STRESS QUERY -->
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="Log IO Stress Query" enabled="true">
+          <stringProp name="dataSource">AzureSQLPool</stringProp>
+          <stringProp name="queryType">Update Statement</stringProp>
+          <stringProp name="query">
+INSERT INTO SalesLT.Customer
+(
+    NameStyle,
+    FirstName,
+    LastName,
+    EmailAddress,
+    Phone,
+    PasswordHash,
+    PasswordSalt,
+    rowguid,
+    ModifiedDate
+)
+VALUES
+(
+    0,
+    'Load',
+    'Test',
+    CONCAT('st_', SUBSTRING(CONVERT(varchar(36), NEWID()), 1, 8), '@ex.com'),
+    '555-1234',
+    CONVERT(varchar(128), NEWID()),
+    SUBSTRING(CONVERT(varchar(36), NEWID()), 1, 10),
+    NEWID(),
+    GETDATE()
+);
+          </stringProp>
+        </JDBCSampler>
+        <hashTree/>
+
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
