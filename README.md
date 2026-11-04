@@ -109,7 +109,7 @@ Se aclaran las simplificaciones de la presentación sobre el número de destinos
 - **Dirección:** https://jorgeperona.github.io/AzureDbWatcher-Demo/
 - **Publicación:** [workflow de Pages](.github/workflows/pages.yml), al subir cambios a `main` en la web, este README o el propio workflow; también se puede lanzar desde **Actions → Deploy GitHub Pages → Run workflow**.
 - **Configuración:** en **Settings → Pages → Build and deployment**, selecciona **GitHub Actions** como origen.
-- **Contenido publicado:** únicamente `docs/`. No se copian SQL, JMX ni drivers al sitio, aunque son accesibles desde el repositorio público.
+- **Contenido publicado:** únicamente `docs/`. Las imágenes de la web deben estar en `docs/assets/` y enlazarse desde la portada con rutas relativas como `assets/img_labmap.png`. No se copian SQL, JMX ni drivers al sitio, aunque son accesibles desde el repositorio público.
 - **Personalización:** edita la [portada](docs/index.html) y sus [estilos](docs/assets/styles.css). No necesita secretos ni credenciales de Azure.
 
 Para previsualizarla localmente con Python:
