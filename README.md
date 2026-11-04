@@ -28,9 +28,26 @@ Los deadlocks no están garantizados en cada ejecución y la carga no garantiza 
 
 ## Empieza por aquí
 
+### Topología del laboratorio
+
+El entorno de la sesión utiliza **dos servidores lógicos de Azure SQL**, `SQLServer01` y `SQLServer02`, con **una base de datos en cada servidor**, ambas con los datos de ejemplo **AdventureWorksLT**.
+
+| Servidor lógico | Base de datos | Datos de ejemplo |
+|---|---|---|
+| `SQLServer01` | Una base de datos de laboratorio | AdventureWorksLT |
+| `SQLServer02` | Una base de datos de laboratorio | AdventureWorksLT |
+
+Las bases de datos de `SQLServer01` y `SQLServer02` se añadirán como destinos a **Azure SQL Database watcher**. El watcher recopilará su telemetría y la almacenará en una base de datos de un **clúster de Azure Data Explorer (ADX)**, del que depende la monitorización de este laboratorio. ADX almacena los datos de monitorización, no las bases de datos AdventureWorksLT.
+
+Prepara primero el clúster ADX y su base de datos de almacenamiento; después configura el watcher con ese almacén, añade ambos destinos SQL y verifica la conectividad y los permisos de recopilación e ingestión antes de generar carga.
+
+**`SalesLT` es un esquema dentro de cada base de datos**, no un servidor ni una base de datos. Por ejemplo, `SalesLT.Customer` identifica la tabla `Customer` del esquema `SalesLT`. AdventureWorksLT ya incluye este esquema y las tablas de ejemplo usadas por JMeter; los scripts SQL del repositorio añaden tablas y procedimientos de estrés al mismo esquema.
+
+Configura cada conexión y plan JMeter con el endpoint real del servidor elegido y el nombre de su base de datos. Para provocar bloqueos o deadlocks entre sesiones, todas las conexiones del escenario deben apuntar a **la misma base de datos del mismo servidor**; las sesiones de `SQLServer01` no bloquean las de `SQLServer02`.
+
 ### 1. Prepara el entorno
 
-- Usa una **base de datos de pruebas aislada**, con permisos para crear tablas y procedimientos.
+- Prepara la topología anterior con bases de datos de pruebas aisladas y datos de ejemplo AdventureWorksLT, con permisos para crear tablas y procedimientos.
 - Abre SSMS o VS Code con la extensión MSSQL y prepara **varias conexiones independientes**.
 - Configura previamente Database watcher y comprueba que puedes consultar su monitorización. Este repositorio **no despliega Azure ni configura el watcher**.
 - Para JMeter, sigue sus [requisitos específicos](loadtesting/README.md); las tablas del laboratorio de estrés no sustituyen a las tablas AdventureWorks que consultan esos planes.

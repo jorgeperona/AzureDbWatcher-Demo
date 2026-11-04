@@ -18,6 +18,14 @@ Los planes `copilot-jmeter*.jmx` tienen el servidor y la base de datos definidos
 
 ## Requisitos
 
+### Destinos del laboratorio
+
+La sesión utiliza dos servidores lógicos de Azure SQL, **`SQLServer01` y `SQLServer02`**, con **una base de datos en cada servidor**, ambas con los datos de ejemplo **AdventureWorksLT**. Configura el plan JMeter con el endpoint real del servidor elegido y el nombre de su base de datos; no asumas que los valores incluidos en el JMX corresponden a ese destino.
+
+**`SalesLT` es un esquema dentro de la base de datos**, no su nombre. AdventureWorksLT incluye las tablas de ejemplo que consultan estos planes, como `SalesLT.Customer` y `SalesLT.Product`. Crear únicamente el esquema `SalesLT` o ejecutar los scripts de tablas de estrés de la carpeta `sql` no instala esas tablas de ejemplo.
+
+### Servicios y acceso
+
 - Una suscripción de Azure y un recurso de Azure Load Testing.
 - Una Azure SQL Database de pruebas con el esquema `SalesLT` y las tablas usadas por el plan elegido (por ejemplo, `Customer`, `Product`, `CustomerAddress`, `Address` y `SalesOrderHeader`).
 - Conectividad desde los motores de prueba a Azure SQL: configura el acceso de red/firewall o una red virtual para el recurso de Load Testing, según corresponda.

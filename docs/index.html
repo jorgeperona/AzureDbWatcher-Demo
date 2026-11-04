@@ -180,10 +180,21 @@
     </section>
 
     <section id="laboratorio" class="section lab-section" aria-labelledby="lab-title">
-      <div class="section-heading"><p class="eyebrow">HAZLO TÚ</p><h2 id="lab-title">De cero a tu primer bloqueo.</h2><p>Una base de datos de pruebas. Varias conexiones. Una pregunta: ¿qué está esperando?</p></div>
+      <div class="section-heading"><p class="eyebrow">HAZLO TÚ</p><h2 id="lab-title">De cero a tu primer bloqueo.</h2><p>Dos servidores Azure SQL. Una base de datos por servidor. Datos de ejemplo AdventureWorksLT para replicar la sesión.</p></div>
+      <article class="topic-panel" aria-labelledby="topology-title">
+        <h3 id="topology-title">El mapa del laboratorio</h3>
+        <img class="lab-map" src="../img/img_labmap.png" alt="Diagrama del laboratorio: dos servidores Azure SQL envían telemetría a Azure SQL Database watcher, que la ingiere en un clúster de Azure Data Explorer.">
+        <div class="topic-grid">
+          <div><h4>SQLServer01</h4><p>Servidor lógico de Azure SQL con una base de datos de laboratorio y los datos de ejemplo <strong>AdventureWorksLT</strong>.</p></div>
+          <div><h4>SQLServer02</h4><p>Segundo servidor lógico de Azure SQL con una base de datos de laboratorio y los datos de ejemplo <strong>AdventureWorksLT</strong>.</p></div>
+        </div>
+        <p>Las bases de datos de ambos servidores se añadirán como destinos a <strong>Azure SQL Database watcher</strong>. El watcher recopilará su telemetría y la almacenará en una base de datos de un <strong>clúster de Azure Data Explorer (ADX)</strong>, del que depende la monitorización de este laboratorio. ADX almacena la telemetría, no las bases de datos AdventureWorksLT.</p>
+        <p><strong>SalesLT es un esquema dentro de cada base de datos.</strong> Por ejemplo, <code>SalesLT.Customer</code> es la tabla <code>Customer</code> de ese esquema; no es el nombre de la base de datos. AdventureWorksLT ya incluye el esquema y las tablas de ejemplo de JMeter. Los scripts de estrés añaden sus propias tablas y procedimientos a <code>SalesLT</code>.</p>
+        <p class="section-note">Configura las conexiones con el endpoint real y el nombre de la base de datos del destino elegido. Las conexiones de un escenario de bloqueo o deadlock deben apuntar a la misma base de datos del mismo servidor: SQLServer01 y SQLServer02 son destinos independientes.</p>
+      </article>
       <ol class="steps">
-        <li><div><h3>Prepara el terreno</h3><p>Usa una base de datos aislada, SSMS o VS Code con MSSQL y permisos para crear objetos. Configura Database watcher antes de empezar: estos scripts no despliegan recursos ni monitorización.</p><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo/blob/main/sql/README.md#requisitos">Consultar requisitos →</a></div></li>
-        <li><div><h3>Crea tablas y procedimientos</h3><p>Confirma el destino y prepara el esquema <code>SalesLT</code>. Ejecuta primero el script combinado de tablas y después el de procedimientos. Crear tablas elimina sus datos anteriores.</p><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo/blob/main/sql/README.md#1-preparar-la-base-de-datos">Preparar la base de datos →</a></div></li>
+        <li><div><h3>Prepara el terreno</h3><p>Prepara las dos bases de datos aisladas con datos de ejemplo AdventureWorksLT. Crea el clúster Azure Data Explorer y su base de datos de almacenamiento, configura Database watcher con ese almacén y añade las bases de datos de SQLServer01 y SQLServer02 como destinos. Verifica la conectividad y los permisos de recopilación e ingestión. Elige un destino y conecta con SSMS o VS Code con MSSQL y permisos para crear objetos: estos scripts no despliegan recursos ni monitorización.</p><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo/blob/main/sql/README.md#requisitos">Consultar requisitos →</a></div></li>
+        <li><div><h3>Crea tablas y procedimientos</h3><p>Confirma el servidor y la base de datos: AdventureWorksLT ya incluye el esquema <code>SalesLT</code>. Ejecuta primero el script combinado de tablas de estrés y después el de procedimientos en cada base de datos donde vayas a generar esa carga. Crear tablas elimina los datos anteriores de las tablas de demostración.</p><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo/blob/main/sql/README.md#1-preparar-la-base-de-datos">Preparar la base de datos →</a></div></li>
         <li><div><h3>Abre dos conexiones independientes</h3><p>Ejecuta A y, antes de que termine, ejecuta B en la misma base de datos.</p>
           <div class="snippet-grid">
             <div class="snippet"><span>CONEXIÓN A</span><pre><code>EXEC SalesLT.GenerateLongBlock

@@ -8,6 +8,20 @@ Use this lab to generate contention, long blocking, deadlocks, and CPU/I/O load 
 
 ## Prerequisites
 
+### Session environment
+
+The lab uses two Azure SQL logical servers, **`SQLServer01` and `SQLServer02`**, with **one database on each server**, both populated with the **AdventureWorksLT** sample data.
+
+The databases on both servers will be added as targets to **Azure SQL Database watcher**, which will collect their telemetry and store it in a database on an **Azure Data Explorer (ADX) cluster**. This cluster is the lab's monitoring data store; it does not host the AdventureWorksLT databases.
+
+Prepare the ADX cluster and its storage database first. Then configure the watcher with that data store, add both SQL targets, and verify connectivity and collection and ingestion permissions before starting tests. This repository's scripts do not create or configure those resources.
+
+`SalesLT` is a **schema** inside each database, not a database or server name. AdventureWorksLT already includes this schema and tables such as `SalesLT.Customer`. The lab scripts add their own stress tables and procedures to `SalesLT`; they do not create the servers, databases, or AdventureWorksLT sample dataset.
+
+Choose one target for each scenario. All concurrent test connections and the diagnostic connection must use **the same database on the same server**. Connections to `SQLServer01` do not block connections to `SQLServer02`. To repeat a test on the other server, prepare the stress objects there too.
+
+### Tools and permissions
+
 - A test database in Azure SQL Database or SQL Server supporting `CREATE OR ALTER PROCEDURE`.
 - A client such as SQL Server Management Studio (SSMS) or the MSSQL extension for VS Code. The combined procedure script requires a client that interprets `GO`.
 - Permissions to create tables and procedures in `SalesLT`, drop demo tables, and execute procedures. Diagnostic views require additional permissions depending on platform and version.
@@ -22,7 +36,7 @@ Confirm the target before running destructive scripts:
 SELECT DB_NAME() AS DatabaseName, @@SPID AS SessionId;
 ```
 
-The scripts use `SalesLT` but do not create it. If missing, create it using an authorized identity:
+AdventureWorksLT already includes the `SalesLT` schema in the session databases. The scripts use this schema but do not create it. If reusing the stress scripts in a database without this schema, create it using an authorized identity; this does not install the AdventureWorksLT sample data:
 
 ```sql
 IF SCHEMA_ID(N'SalesLT') IS NULL

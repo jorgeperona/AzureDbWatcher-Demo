@@ -8,6 +8,20 @@ Laboratorio para provocar contención, bloqueos prolongados, deadlocks y carga d
 
 ## Requisitos
 
+### Entorno de la sesión
+
+El laboratorio dispone de dos servidores lógicos de Azure SQL, **`SQLServer01` y `SQLServer02`**, con **una base de datos por servidor**, cada una con los datos de ejemplo **AdventureWorksLT**.
+
+Las bases de datos de ambos servidores se añadirán como destinos a **Azure SQL Database watcher**, que recopilará su telemetría y la almacenará en una base de datos de un **clúster de Azure Data Explorer (ADX)**. Este clúster es el almacén de monitorización del laboratorio; no aloja las bases de datos AdventureWorksLT.
+
+Prepara primero el clúster ADX y su base de datos de almacenamiento. Después configura el watcher con ese almacén, añade los dos destinos SQL y verifica la conectividad y los permisos de recopilación e ingestión antes de iniciar las pruebas. Los scripts de este repositorio no crean ni configuran esos recursos.
+
+`SalesLT` es el **esquema** dentro de cada base de datos, no el nombre de una base de datos ni de un servidor. AdventureWorksLT ya contiene ese esquema y tablas como `SalesLT.Customer`. Los scripts de este laboratorio añaden sus propias tablas y procedimientos de estrés al esquema `SalesLT`; no crean los servidores, las bases de datos ni el conjunto de datos AdventureWorksLT.
+
+Elige uno de los dos destinos para cada escenario. Todas sus conexiones concurrentes y la conexión de diagnóstico deben usar **la misma base de datos del mismo servidor**. No se generan bloqueos entre las bases de datos de `SQLServer01` y `SQLServer02`. Si repites la prueba en el otro servidor, prepara allí también los objetos de estrés.
+
+### Herramientas y permisos
+
 - Una base de datos de pruebas en Azure SQL Database o SQL Server compatible con `CREATE OR ALTER PROCEDURE`.
 - Un cliente como SQL Server Management Studio (SSMS) o la extensión MSSQL de VS Code. El script combinado de procedimientos requiere un cliente que interprete `GO`.
 - Permisos para crear tablas y procedimientos en el esquema `SalesLT`, eliminar las tablas de demostración y ejecutar los procedimientos. Consultar las vistas de diagnóstico requiere permisos adicionales según plataforma y versión.
@@ -22,7 +36,7 @@ Confirma el destino antes de ejecutar scripts destructivos:
 SELECT DB_NAME() AS DatabaseName, @@SPID AS SessionId;
 ```
 
-Los scripts usan `SalesLT`, pero no lo crean. Si no existe, créalo con una identidad autorizada:
+En las bases de datos de la sesión, AdventureWorksLT ya incluye el esquema `SalesLT`. Los scripts usan ese esquema, pero no lo crean. Si reutilizas los scripts de estrés en una base de datos sin ese esquema, créalo con una identidad autorizada; esto no instala los datos de ejemplo AdventureWorksLT:
 
 ```sql
 IF SCHEMA_ID(N'SalesLT') IS NULL

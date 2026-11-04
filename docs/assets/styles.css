@@ -82,6 +82,7 @@ h2 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); margin-bottom: 18px; }
 .topic-panel { min-width: 0; padding: 28px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(150deg, #142239, #0d162a); }
 .topic-panel .card-number { display: block; margin-bottom: 18px; }
 .topic-panel h3 { font-size: 1.5rem; margin-bottom: 18px; }
+.lab-map { display: block; width: 100%; height: auto; margin: 0 0 24px; border: 1px solid var(--border); border-radius: 8px; }
 .topic-panel p, .content-list { color: var(--muted); font-size: .9rem; }
 .topic-panel strong { color: var(--text); }
 .topic-panel > :last-child { margin-bottom: 0; }

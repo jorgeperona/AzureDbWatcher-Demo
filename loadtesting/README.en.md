@@ -18,6 +18,14 @@ The `copilot-jmeter*.jmx` plans define the server and database in JMeter variabl
 
 ## Prerequisites
 
+### Lab targets
+
+The session uses two Azure SQL logical servers, **`SQLServer01` and `SQLServer02`**, with **one database on each server**, both populated with the **AdventureWorksLT** sample data. Configure the JMeter plan with the chosen server's actual endpoint and database name; do not assume the values included in the JMX match that target.
+
+**`SalesLT` is a schema inside the database**, not its name. AdventureWorksLT includes the sample tables queried by these plans, such as `SalesLT.Customer` and `SalesLT.Product`. Creating only the `SalesLT` schema or running the stress-table scripts in the `sql` folder does not install these sample tables.
+
+### Services and access
+
 - An Azure subscription and an Azure Load Testing resource.
 - A test Azure SQL Database with the `SalesLT` schema and the tables used by the selected plan (for example, `Customer`, `Product`, `CustomerAddress`, `Address`, and `SalesOrderHeader`).
 - Network connectivity from the test engines to Azure SQL: configure network/firewall access or a virtual network for the Load Testing resource, as applicable.
