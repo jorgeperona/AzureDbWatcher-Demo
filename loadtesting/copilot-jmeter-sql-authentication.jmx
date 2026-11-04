@@ -28,8 +28,8 @@
           <stringProp name="dataSource">AzureSQLPool</stringProp>
           <stringProp name="driver">com.microsoft.sqlserver.jdbc.SQLServerDriver</stringProp>
           <stringProp name="dbUrl">jdbc:sqlserver://${server}:1433;database=${database};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;</stringProp>
-          <stringProp name="username">dbwatcheradmin</stringProp>
-          <stringProp name="password">Pixel@0573</stringProp>
+          <stringProp name="username">${__GetSecret(sql_username)}</stringProp>
+          <stringProp name="password">${__GetSecret(sql_password)}</stringProp>
           <stringProp name="poolMax">100</stringProp>
           <stringProp name="timeout">10000</stringProp>
           <boolProp name="autocommit">true</boolProp>
