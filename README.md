@@ -78,6 +78,17 @@ Registra una línea base antes de generar carga. Empieza con pocas iteraciones y
 
 La portada está en [`docs/index.html`](docs/index.html), con estilos propios, diseño adaptable y sin dependencias de compilación. Las guías y los scripts se enlazan al repositorio para que los asistentes puedan replicar la demo.
 
+### Contenido de la presentación
+
+La web integra las **diapositivas 5 a 15** de la presentación de Data Saturday 2026 como contenido HTML accesible, no como imágenes:
+
+- **5–11 · Database watcher:** alcance, arquitectura, destinos SQL, data store, límites, costes, conectividad, identidad y permisos.
+- **12–15 · Azure SRE Agent:** gestión de incidentes, ciclo de detección y diagnóstico, mitigación, memoria, capacidades y límites.
+
+Se aclaran las simplificaciones de la presentación sobre el número de destinos por watcher, los costes asociados y la diferencia entre respuesta a incidentes y monitorización APM. La web enlaza la documentación oficial y avisa de la retirada de Database watcher anunciada para el 30 de abril de 2027. El PowerPoint original no se publica como parte del sitio.
+
+### Publicación y personalización
+
 - **Dirección:** https://jorgeperona.github.io/AzureDbWatcher-Demo/
 - **Publicación:** [workflow de Pages](.github/workflows/pages.yml), al subir cambios a `main` en la web, este README o el propio workflow; también se puede lanzar desde **Actions → Deploy GitHub Pages → Run workflow**.
 - **Configuración:** en **Settings → Pages → Build and deployment**, selecciona **GitHub Actions** como origen.
@@ -91,6 +102,12 @@ python -m http.server 8000 --directory docs
 ```
 
 Abre http://localhost:8000. La publicación inicial requiere que estos archivos estén en `main` y que el workflow termine correctamente.
+
+## Autor de la sesión
+
+**[Jorge Perona Puro](https://sessionize.com/jorgeperona/)** · Microsoft MVP · Microsoft MCT · Azure Cloud Architect en Plain Concepts.
+
+Con 25 años de experiencia en el ecosistema Microsoft, comparte conocimientos sobre Azure e infraestructura cloud con la comunidad hispanohablante. Consulta sus sesiones en [Sessionize](https://sessionize.com/jorgeperona/) y sus artículos en [su blog](https://www.jorgeperona.com/).
 
 ## Para seguir explorando
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Laboratorio práctico de Azure SQL Database watcher: bloqueos, deadlocks y pruebas de carga con SQL y JMeter. Material para replicar la demo paso a paso.">
+  <meta name="description" content="Database watcher y Azure SRE Agent: arquitectura, conectividad y gestión de incidentes. Laboratorio de bloqueos, deadlocks y carga con SQL y JMeter.">
   <meta name="theme-color" content="#080e20">
   <title>Azure SQL Database watcher · Laboratorio en directo</title>
   <link rel="stylesheet" href="assets/styles.css">
@@ -13,9 +13,12 @@
   <header class="site-header">
     <a class="brand" href="./" aria-label="Inicio del laboratorio"><span class="brand-icon" aria-hidden="true">DB</span> SQL / WATCHER<span class="brand-dot" aria-hidden="true"></span></a>
     <nav aria-label="Navegación principal">
+      <a href="#database-watcher">Database watcher</a>
+      <a href="#sre-agent">SRE Agent</a>
       <a href="#escenarios">Escenarios</a>
       <a href="#laboratorio">Laboratorio</a>
       <a href="#recursos">Recursos</a>
+      <a href="#autor">Autor</a>
       <a class="nav-github" href="https://github.com/jorgeperona/AzureDbWatcher-Demo">GitHub <span aria-hidden="true">↗</span></a>
     </nav>
   </header>
@@ -25,7 +28,7 @@
       <div class="hero-copy">
         <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> LABORATORIO / DEMO EN DIRECTO</p>
         <h1 id="hero-title">Tu base de datos<br>tiene algo que<br><span class="gradient-text">contarte.</span></h1>
-        <p class="hero-description">Provoca el bloqueo. Encuentra la señal. Explica la causa.<br>Explora <strong>Azure SQL Database watcher</strong> con una demo que puedes replicar.</p>
+        <p class="hero-description">Provoca el bloqueo. Encuentra la señal. Explica la causa.<br>Explora <strong>Azure SQL Database watcher</strong> y descubre cómo <strong>Azure SRE Agent</strong> ayuda a investigar incidentes.</p>
         <div class="actions">
           <a class="button button-primary" href="#laboratorio">Empezar el laboratorio <span aria-hidden="true">→</span></a>
           <a class="button button-secondary" href="https://github.com/jorgeperona/AzureDbWatcher-Demo">Ver el código <span aria-hidden="true">↗</span></a>
@@ -61,6 +64,110 @@
       <span><b>04</b> Explica</span>
     </div>
 
+    <section id="database-watcher" class="section" aria-labelledby="watcher-title" data-slide="5">
+      <div class="section-heading"><p class="eyebrow">LA SESIÓN / DIAPOSITIVAS 5–11</p><h2 id="watcher-title">Database watcher.<br><span class="gradient-text">De las consultas a la visibilidad.</span></h2><p>El contenido de la presentación, adaptado a la web: qué monitoriza, cómo recopila los datos y qué necesitas para conectarlo.</p></div>
+      <article class="topic-panel" data-slide="6">
+        <span class="card-number">06 / QUÉ ES · PREVIEW</span>
+        <h3>Una vista unificada de tu entorno Azure SQL</h3>
+        <p>Una solución administrada de monitorización para consultar la configuración, el estado y el rendimiento de Azure SQL Database y Azure SQL Managed Instance.</p>
+        <ul class="content-list">
+          <li><strong>Azure SQL Database:</strong> bases de datos individuales, elastic pools e Hyperscale.</li>
+          <li><strong>Réplicas:</strong> secundarias de solo lectura y alta disponibilidad, georréplicas y named replicas de Hyperscale, según el tipo de destino compatible.</li>
+          <li><strong>Visualización:</strong> paneles unificados y análisis personalizados con Power BI o Grafana sobre los datos recopilados.</li>
+          <li><strong>Alcance de la presentación:</strong> Azure Arc y SQL Server en máquinas virtuales se mencionan como posibilidades futuras, no como soporte disponible ni comprometido.</li>
+        </ul>
+      </article>
+      <article class="topic-panel" data-slide="7">
+        <span class="card-number">07 / ARQUITECTURA</span>
+        <h3>Tres piezas, un flujo de datos</h3>
+        <ol class="architecture-flow" aria-label="Flujo de recopilación de Database watcher">
+          <li><span>01 / SQL TARGETS</span><h4>Los destinos</h4><p>Bases de datos, pools e instancias que quieres monitorizar.</p></li>
+          <li><span>02 / WATCHER</span><h4>El recopilador remoto</h4><p>Ejecuta consultas T-SQL sobre más de 70 vistas de catálogo y DMV. Transforma los resultados en datasets.</p></li>
+          <li><span>03 / DATA STORE</span><h4>El almacén analítico</h4><p>Azure Data Explorer o Real-Time Analytics de Microsoft Fabric. Almacena y permite analizar los datasets con KQL.</p></li>
+        </ol>
+      </article>
+      <div class="topic-grid">
+        <article class="topic-panel" data-slide="8">
+          <span class="card-number">08 / LÍMITES Y REQUISITOS</span><h3>Planifica antes de conectar</h3>
+          <ul class="content-list">
+            <li>Watcher, destinos y almacén deben pertenecer al mismo tenant de Microsoft Entra ID.</li>
+            <li>Comprueba las regiones disponibles durante la preview.</li>
+            <li><strong>20 watchers por suscripción</strong> y hasta <strong>100 SQL targets por watcher</strong>, según la documentación consultada.</li>
+            <li>Las réplicas monitorizadas cuentan como destinos independientes.</li>
+          </ul>
+          <p class="section-note">Aclaración de la diapositiva: no se necesita un watcher por destino. Un watcher puede recopilar datos de múltiples SQL targets. Los límites de preview pueden cambiar.</p>
+        </article>
+        <article class="topic-panel" data-slide="9">
+          <span class="card-number">09 / COSTES</span><h3>El watcher es gratuito.<br>Su entorno puede no serlo.</h3>
+          <ul class="content-list">
+            <li>Sin coste por watcher ni por los dashboards del servicio.</li>
+            <li>Presupuesta el data store: Azure Data Explorer o la capacidad y el consumo de Fabric.</li>
+            <li>En la misma región no se añade el coste de transferencia entre regiones; en regiones distintas puede haber tráfico de salida facturable.</li>
+            <li>También pueden aplicar costes de Key Vault y de las alertas configuradas.</li>
+          </ul>
+          <p class="section-note">El mensaje «solo pagas el datastore» de la presentación es una simplificación: revisa todos los componentes de tu despliegue.</p>
+        </article>
+        <article class="topic-panel" data-slide="10">
+          <span class="card-number">10 / CONECTIVIDAD</span><h3>Pública o privada.<br>Siempre controlada.</h3>
+          <ul class="content-list">
+            <li><strong>Pública:</strong> reglas de firewall basadas en IP para permitir la conexión.</li>
+            <li><strong>SQL Managed Instance:</strong> habilita el endpoint público y configura la regla NSG de entrada TCP <code>3342</code> con origen <code>AzureCloud</code>, si usas esta modalidad.</li>
+            <li><strong>Privada:</strong> managed private endpoints hacia los SQL targets; esta ruta tiene prioridad cuando está configurada.</li>
+            <li>También puedes usar conectividad privada con Azure Data Explorer para proteger el recorrido hasta el almacén.</li>
+          </ul>
+          <p class="section-note">La conectividad no concede permisos SQL. El responsable del entorno controla tanto la red como el acceso a los datos de monitorización.</p>
+        </article>
+        <article class="topic-panel" data-slide="11">
+          <span class="card-number">11 / IDENTIDAD Y PERMISOS</span><h3>Acceso específico.<br>Privilegios limitados.</h3>
+          <p><strong>Microsoft Entra ID:</strong> el watcher usa su identidad administrada para iniciar sesión. Como alternativa, la autenticación SQL utiliza credenciales almacenadas en Key Vault.</p>
+          <p>En Azure SQL Database, la identidad necesita estos roles de servidor:</p>
+          <ul class="content-list role-list">
+            <li><code>##MS_ServerPerformanceStateReader##</code></li>
+            <li><code>##MS_DefinitionReader##</code></li>
+            <li><code>##MS_DatabaseConnector##</code></li>
+          </ul>
+          <p class="section-note">SQL Managed Instance requiere un conjunto distinto de permisos. El watcher valida el acceso y puede desconectarse si faltan permisos o sobran privilegios; no le concedas acceso general a datos de negocio.</p>
+        </article>
+      </div>
+      <aside class="session-note"><strong>Material de la sesión, no una promesa de disponibilidad.</strong> La presentación describe Database watcher en preview. Microsoft anuncia su retirada para el 30 de abril de 2027 y la transición a Database Hub en Microsoft Fabric. Consulta el <a href="https://learn.microsoft.com/azure/azure-sql/database-watcher-overview">estado del servicio, los límites y los costes actuales</a> antes de preparar el entorno.</aside>
+    </section>
+
+    <section id="sre-agent" class="section" aria-labelledby="sre-title" data-slide="12">
+      <div class="section-heading"><p class="eyebrow">LA SESIÓN / DIAPOSITIVAS 12–15</p><h2 id="sre-title">Azure SRE Agent.<br><span class="gradient-text">De la señal a la investigación.</span></h2><p>Tu compañero de operaciones con IA: conecta recursos, observabilidad y plataformas de incidentes para ayudar al equipo a mantener la fiabilidad.</p></div>
+      <article class="topic-panel" data-slide="13">
+        <span class="card-number">13 / TU ASISTENTE DE FIABILIDAD</span><h3>Menos trabajo repetitivo. Más contexto para decidir.</h3>
+        <p>Investiga, correlaciona señales y ayuda a diagnosticar problemas de producción con supervisión humana y límites de gobernanza. El objetivo: reducir el tiempo de recuperación (MTTR), la fatiga de alertas y el trabajo operativo repetitivo (toil).</p>
+        <ol class="agent-cycle">
+          <li><span>01</span><h4>Detecta</h4><p>Responde a alertas de Azure Monitor o de plataformas conectadas como PagerDuty y ServiceNow.</p></li>
+          <li><span>02</span><h4>Diagnostica</h4><p>Correlaciona logs, métricas, trazas y despliegues recientes para buscar causas con evidencias.</p></li>
+          <li><span>03</span><h4>Mitiga</h4><p>Propone acciones o las ejecuta según el modo de revisión o autónomo, los permisos y las políticas.</p></li>
+          <li><span>04</span><h4>Aprende</h4><p>Conserva el contexto de investigaciones anteriores para ayudar ante incidentes similares.</p></li>
+        </ol>
+        <p class="section-note">La respuesta automatizada puede estar disponible ante alertas en cualquier momento. El agente no sustituye a la instrumentación ni a la monitorización continua de un APM.</p>
+      </article>
+      <article class="topic-panel" data-slide="14">
+        <span class="card-number">14 / QUÉ HACE</span><h3>Capacidades para investigar y actuar</h3>
+        <div class="capability-grid">
+          <div><h4>Diagnóstico en lenguaje natural</h4><p>Descríbele el incidente: consulta las herramientas conectadas, ejecuta comandos autorizados y cruza logs y métricas para presentar evidencias.</p></div>
+          <div><h4>Análisis de causa raíz</h4><p>Ante un <code>CrashLoopBackOff</code>, puede revisar logs, eventos, límites de recursos, imagen y sondas de readiness en lugar de quedarse en el síntoma.</p></div>
+          <div><h4>Remediación guiada</h4><p>Propone acciones y comandos. En modo Revisión solicita aprobación; en modo Autónomo puede actuar sin esperarla, dentro de los permisos y límites configurados.</p></div>
+          <div><h4>Code Interpreter</h4><p>Ejecuta Python para analizar datos y generar entregables como informes PDF, gráficos, libros de Excel, dashboards y exportaciones, según las herramientas disponibles.</p></div>
+          <div><h4>Automatización recurrente</h4><p>Programa chequeos de salud, revisiones de seguridad o validaciones posteriores al despliegue, con registro y notificaciones configuradas.</p></div>
+          <div><h4>Memoria operativa</h4><p>Reutiliza el historial y el conocimiento registrado: qué falló, qué funcionó y qué causa se identificó. No equivale a garantizar un diagnóstico correcto.</p></div>
+        </div>
+      </article>
+      <article class="topic-panel boundaries" data-slide="15">
+        <span class="card-number">15 / QUÉ NO HACE</span><h3>Un asistente, no un sustituto del equipo</h3>
+        <ul class="content-list">
+          <li><strong>No reemplaza a tus ingenieros.</strong> El equipo mantiene la responsabilidad operativa y define la gobernanza.</li>
+          <li><strong>No ejecuta acciones destructivas sin aprobación en modo Revisión.</strong> El modo Autónomo tiene un comportamiento distinto: configura sus permisos y políticas con cuidado.</li>
+          <li><strong>No monitoriza 24/7 como un APM.</strong> Se activa por chat, alertas o tareas programadas y utiliza las señales que proporcionan las herramientas conectadas.</li>
+          <li><strong>No conoce tu lógica de negocio de forma nativa.</strong> Necesita contexto, una base de conocimiento y, cuando proceda, subagentes especializados.</li>
+        </ul>
+      </article>
+      <p class="section-note">Las capacidades dependen de la configuración, las integraciones y la disponibilidad del servicio. <a href="https://learn.microsoft.com/azure/sre-agent/overview">Explorar Azure SRE Agent en Microsoft Learn →</a></p>
+    </section>
+
     <section id="escenarios" class="section" aria-labelledby="scenarios-title">
       <div class="section-heading"><p class="eyebrow">DEL SÍNTOMA A LA CAUSA</p><h2 id="scenarios-title">Cuatro formas de hacer visible<br>lo que pasa por dentro.</h2><p>No se trata solo de generar carga: se trata de entenderla.</p></div>
       <div class="cards">
@@ -91,6 +198,25 @@
 
     <aside class="safety" aria-labelledby="safety-title"><span class="safety-icon" aria-hidden="true">!</span><div><h2 id="safety-title">Rompe cosas. Pero solo en el laboratorio.</h2><p>Estas pruebas modifican datos, pueden dejar transacciones abiertas y generar costes. Empieza con poca carga, registra una línea base y comprueba las conexiones al terminar. No uses producción. Los planes JMeter pueden insertar filas y requieren sus propias tablas de ejemplo.</p></div></aside>
 
+    <section id="autor" class="section" aria-labelledby="author-title">
+      <div class="section-heading"><p class="eyebrow">QUIÉN ESTÁ DETRÁS DE LA SESIÓN</p><h2 id="author-title">Compartir también es<br><span class="gradient-text">parte de la tecnología.</span></h2></div>
+      <article class="author-card">
+        <div class="author-avatar" aria-hidden="true">JP</div>
+        <div class="author-copy">
+          <h3>Jorge Perona Puro</h3>
+          <p class="author-role">Azure Cloud Architect en Plain Concepts</p>
+          <div class="tags author-badges"><span>Microsoft MVP</span><span>Microsoft MCT</span><span>Comunidad Azure</span></div>
+          <p>Su pasión por la tecnología empezó con un ZX Spectrum. Con 25 años de experiencia en el ecosistema Microsoft, descubrió Azure en 2010 y en 2017 dio el salto del mundo on-premise a la arquitectura cloud.</p>
+          <p>Comparte conocimientos y experiencias sobre infraestructura y Azure con la comunidad hispanohablante, tanto en sus sesiones como en su blog.</p>
+          <div class="actions">
+            <a class="button button-primary" href="https://sessionize.com/jorgeperona/">Perfil y sesiones en Sessionize <span aria-hidden="true">↗</span></a>
+            <a class="button button-secondary" href="https://www.jorgeperona.com/">Blog de Jorge Perona <span aria-hidden="true">↗</span></a>
+          </div>
+          <p class="section-note">Biografía resumida a partir de su perfil público de Sessionize.</p>
+        </div>
+      </article>
+    </section>
+
     <section id="recursos" class="section" aria-labelledby="resources-title">
       <div class="section-heading"><p class="eyebrow">LLÉVATE LA DEMO</p><h2 id="resources-title">Todo listo para seguir explorando.</h2><p>Guías en español e inglés, scripts y planes de carga en el repositorio.</p></div>
       <div class="resource-grid">
@@ -101,6 +227,6 @@
       <div class="closing"><h2>La mejor demo es la que<br><span class="gradient-text">puedes repetir.</span></h2><a class="button button-primary" href="https://github.com/jorgeperona/AzureDbWatcher-Demo">Abrir el repositorio <span aria-hidden="true">↗</span></a></div>
     </section>
   </main>
-  <footer><span>AzureDbWatcher-Demo / Material de laboratorio</span><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo">Código y documentación en GitHub ↗</a></footer>
+  <footer><span>AzureDbWatcher-Demo / Una sesión de <a href="https://sessionize.com/jorgeperona/">Jorge Perona Puro</a></span><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo">Código y documentación en GitHub ↗</a></footer>
 </body>
 </html>
