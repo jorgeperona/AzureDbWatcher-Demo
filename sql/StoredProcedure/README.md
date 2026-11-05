@@ -46,13 +46,13 @@ Ejecuta cada escenario por separado y sin transacciones externas. Los deadlocks 
 - Los bloqueos y la capacidad disponible pueden alargar las llamadas. Una espera no equivale por sí misma a consumo de CPU.
 - Las tablas de deadlock solo tienen cuatro o cinco filas; las lecturas adicionales de Ultra no garantizan carga elevada de E/S.
 - El efecto de las sugerencias de bloqueo depende también del aislamiento y la configuración de la base de datos; revisa los errores reales si una llamada no produce el efecto esperado.
-- Los `Payload NVARCHAR(200)` crecen con las actualizaciones y pueden alcanzar su límite. Restablece las tablas entre pruebas.
+- Ultra limita `Payload` a 200 caracteres para permitir ejecuciones recurrentes y usa `READCOMMITTEDLOCK` con `READPAST` para admitir bases con `READ_COMMITTED_SNAPSHOT`. Aggressive y LongBlockTest siguen haciendo crecer el payload: restablece sus tablas entre pruebas.
 
 ## Interpretación de errores y parada
 
-- Los generadores de deadlocks hacen rollback de la transacción activa en su `CATCH` y continúan, pero imprimen `Deadlock detectado` para cualquier error capturado. Confirma el error 1205 en la captura de eventos; no cuentes esos mensajes como deadlocks verificados.
+- Ultra hace rollback y continúa solo ante el error 1205; relanza los demás errores para que los registre el ejecutor. Aggressive mantiene su comportamiento original: imprime `Deadlock detectado` para cualquier error capturado y continúa. Confirma los deadlocks en la captura de eventos.
 - `TryAccessBlockedRow` captura errores y muestra su mensaje, sin relanzarlos. Un timeout de bloqueo (normalmente error 1222) no es un deadlock.
-- `TableLockAndCpuIoStress` hace rollback en su `CATCH`, pero no muestra ni relanza el error. Que termine no demuestra que todas las iteraciones hayan tenido éxito.
+- `TableLockAndCpuIoStress` hace rollback y relanza el error; un fallo interrumpe la llamada y queda visible para el ejecutor.
 - `GenerateLongBlock` no tiene `TRY/CATCH`. Un error o cancelación puede dejar una transacción abierta.
 
 Después de cancelar, comprueba `@@TRANCOUNT` y `XACT_STATE()` en cada conexión afectada y revierte las transacciones del laboratorio que sigan abiertas. Sigue los pasos de [parada y restablecimiento](../README.md#5-detener-y-restablecer).

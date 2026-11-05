@@ -4,6 +4,10 @@
 
 Before generating load, prepare the [tables](../CreateTable/README.en.md) and [procedures](../StoredProcedure/README.en.md), confirm the target database, and configure monitoring.
 
+To repeat aggressive load every two hours without an open client, see the
+[Elastic Jobs setup](../elastic-jobs/README.en.md): two deadlock sessions and one
+CPU/I/O session per database, without overlapping cycles and initially disabled.
+
 ## Files
 
 ### [Run_All_StressProcedures.sql](Run_All_StressProcedures.sql)
@@ -24,11 +28,10 @@ This can be a long run: Aggressive's delays alone total about 500 seconds if ite
 
 ### [bloqueos.sql](bloqueos.sql)
 
-This is a collection of queries and manual examples, **not an executable batch**:
+This is a collection of queries and manual examples, **not an executable batch**. Select only the block you need; don't run the load examples together:
 
-- Its `#` and `##` headings are not valid T-SQL comments. Copy only the required query or convert headings to `--` comments before execution.
 - Replace `tu_usuario` with the actual login when filtering `sys.dm_exec_sessions`.
-- The `sys.event_log` query is not a generic deadlock diagnostic. That view is platform-specific, is queried in Azure SQL Database's `master`, and its columns do not match the file's `event_timestamp`. Do not run it without adaptation; use your environment's event/deadlock graph capture.
+- In Azure SQL Database, `sys.event_log` records connections and connection failures, not deadlocks. Use the deadlock graphs/events captured by your platform's tooling.
 - The requests query's `session_id > 50` filter is only a rough filter, not an identifier of test sessions.
 - Examples use 500 and 1000 deadlock iterations and **100000** table-load iterations: do not use these as starting values.
 

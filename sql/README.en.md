@@ -115,6 +115,9 @@ Saturation and high physical I/O are not guaranteed: caching, execution plans, a
 
 ## 4. Observe results
 
+For recurring load every two hours on both session servers, see the
+[Elastic Jobs setup](elastic-jobs/README.en.md), prepared without activation.
+
 During tests, use another connection to the database:
 
 ```sql
@@ -128,7 +131,7 @@ ORDER BY blocking_session_id DESC, session_id;
 - Correlate timestamps and session IDs with blocking, waits, CPU, data I/O, and log I/O.
 - A lock timeout is not a deadlock. Confirm deadlocks using the events or deadlock graphs available on your platform.
 - Allow for sampling and ingestion intervals: a short event may not appear in a periodic capture.
-- `Deadlock detectado` messages are not sufficient evidence: both generators print this text for **any caught error**, not just error 1205. The table-load procedure does not report errors it catches.
+- Messages are not a substitute for captured events: Aggressive prints `Deadlock detectado` for any caught error. Ultra continues only for error 1205 and rethrows other errors; the table-load procedure also rethrows errors.
 
 [bloqueos.sql](exec/bloqueos.sql) contains notes, not an executable batch: it uses `#` headings that are invalid T-SQL comments, a placeholder user, and a `sys.event_log` query that should not be treated as a portable deadlock history. See the warnings in the [execution guide](exec/README.en.md).
 

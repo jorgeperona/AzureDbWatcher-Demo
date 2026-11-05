@@ -46,13 +46,13 @@ Run each scenario separately and without outer transactions. Deadlocks require c
 - Blocking and available capacity can extend calls. A wait does not by itself imply CPU consumption.
 - Deadlock tables contain only four or five rows; Ultra's additional reads do not guarantee high I/O load.
 - Lock hint behavior also depends on isolation and database settings; inspect actual errors if a call does not produce the expected effect.
-- Updates grow the `Payload NVARCHAR(200)` values, which can reach their limit. Reset tables between tests.
+- Ultra bounds `Payload` to 200 characters for recurring runs and combines `READPAST` with `READCOMMITTEDLOCK` to support `READ_COMMITTED_SNAPSHOT` databases. Aggressive and LongBlockTest still grow their payloads: reset their tables between tests.
 
 ## Error interpretation and stopping
 
-- Deadlock generators roll back the active transaction in their `CATCH` and continue, but print `Deadlock detectado` for any caught error. Confirm error 1205 in event capture; do not count these messages as verified deadlocks.
+- Ultra rolls back and continues only for error 1205, rethrowing other errors to the runner. Aggressive retains its original behavior: it prints `Deadlock detectado` for any caught error and continues. Verify deadlocks using captured events.
 - `TryAccessBlockedRow` catches errors and prints their message without rethrowing. A lock timeout (normally error 1222) is not a deadlock.
-- `TableLockAndCpuIoStress` rolls back in its `CATCH` but neither prints nor rethrows the error. Completion does not prove that all iterations succeeded.
+- `TableLockAndCpuIoStress` rolls back and rethrows errors, stopping the call and exposing failures to the runner.
 - `GenerateLongBlock` has no `TRY/CATCH`. An error or cancellation can leave an open transaction.
 
 After cancellation, check `@@TRANCOUNT` and `XACT_STATE()` in every affected connection and roll back remaining lab transactions. Follow the [stop and reset steps](../README.en.md#5-stop-and-reset).

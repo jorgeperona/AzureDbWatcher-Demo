@@ -9,31 +9,31 @@ BEGIN
     WHILE @Loops > 0
     BEGIN
         -- Selección aleatoria de dos filas distintas
-        SELECT @Id1 = ABS(CHECKSUM(NEWID())) % 5 + 1;
-        SELECT @Id2 = ABS(CHECKSUM(NEWID())) % 5 + 1;
+        SELECT @Id1 = ABS(CONVERT(BIGINT, CHECKSUM(NEWID()))) % 5 + 1;
+        SELECT @Id2 = ABS(CONVERT(BIGINT, CHECKSUM(NEWID()))) % 5 + 1;
 
         WHILE @Id1 = @Id2
-            SELECT @Id2 = ABS(CHECKSUM(NEWID())) % 5 + 1;
+            SELECT @Id2 = ABS(CONVERT(BIGINT, CHECKSUM(NEWID()))) % 5 + 1;
 
         BEGIN TRY
             BEGIN TRAN;
 
             -- Bloqueo fuerte sobre la primera fila
             UPDATE SalesLT.DeadlockUltra WITH (XLOCK, ROWLOCK, HOLDLOCK)
-            SET Payload = Payload + 'X',
+            SET Payload = LEFT(Payload, 199) + 'X',
                 UpdatedAt = GETDATE()
             WHERE Id = @Id1;
 
             -- Lectura pesada para generar IO
             SELECT TOP 1000 @Dummy = CHECKSUM(Payload)
-            FROM SalesLT.DeadlockUltra WITH (READPAST);
+            FROM SalesLT.DeadlockUltra WITH (READPAST, READCOMMITTEDLOCK);
 
             -- Espera mínima para permitir colisión
             WAITFOR DELAY '00:00:00.300';
 
             -- Segundo bloqueo fuerte sobre otra fila
             UPDATE SalesLT.DeadlockUltra WITH (XLOCK, ROWLOCK, HOLDLOCK)
-            SET Payload = Payload + 'Y',
+            SET Payload = LEFT(Payload, 199) + 'Y',
                 UpdatedAt = GETDATE()
             WHERE Id = @Id2;
 
@@ -48,7 +48,10 @@ BEGIN
             IF XACT_STATE() <> 0
                 ROLLBACK;
 
-            PRINT 'Deadlock detectado en iteración ' + CAST(@Loops AS NVARCHAR(10));
+            IF ERROR_NUMBER() <> 1205
+                THROW;
+
+            PRINT 'Deadlock 1205 en iteracion ' + CAST(@Loops AS NVARCHAR(10));
         END CATCH;
 
         SET @Loops -= 1;

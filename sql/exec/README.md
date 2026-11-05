@@ -4,6 +4,10 @@
 
 Antes de ejecutar carga, prepara las [tablas](../CreateTable/README.md) y los [procedimientos](../StoredProcedure/README.md), confirma la base de datos de destino y configura la monitorización.
 
+Para repetir la carga agresiva cada dos horas sin depender de un cliente abierto,
+consulta la [preparación de Elastic Jobs](../elastic-jobs/README.md): dos sesiones
+de deadlocks y una de CPU/E/S por base, sin solapar ciclos y deshabilitada inicialmente.
+
 ## Ficheros
 
 ### [Run_All_StressProcedures.sql](Run_All_StressProcedures.sql)
@@ -24,11 +28,10 @@ Es una ejecución potencialmente larga: solo las esperas de Aggressive suman uno
 
 ### [bloqueos.sql](bloqueos.sql)
 
-Es un cuaderno de consultas y ejemplos manuales, **no un lote listo para ejecutar**:
+Es un cuaderno de consultas y ejemplos manuales, **no un lote listo para ejecutar**. Selecciona solo el bloque que necesites; no ejecutes juntos los ejemplos de carga:
 
-- Sus encabezados `#` y `##` no son comentarios T-SQL válidos. Copia únicamente la consulta necesaria o conviértelos en comentarios `--` antes de ejecutarlos.
 - Sustituye `tu_usuario` por el login real al filtrar `sys.dm_exec_sessions`.
-- La consulta a `sys.event_log` no es un diagnóstico genérico de deadlocks. Esa vista depende de la plataforma, se consulta en `master` de Azure SQL Database y sus columnas no coinciden con `event_timestamp` usado en el fichero. No la ejecutes sin adaptarla; usa la captura de eventos/gráficos de deadlock disponible en tu entorno.
+- `sys.event_log` en Azure SQL Database registra conexiones y fallos de conexión, no deadlocks. Usa los deadlock graphs/eventos capturados por la herramienta de tu plataforma.
 - El filtro `session_id > 50` de la consulta de solicitudes es orientativo, no identifica por sí mismo las sesiones de la prueba.
 - Incluye ejemplos con 500 y 1000 iteraciones para deadlocks y **100000** para carga de tabla: no los uses como punto de partida.
 

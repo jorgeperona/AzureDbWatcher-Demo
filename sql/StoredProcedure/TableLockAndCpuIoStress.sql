@@ -30,6 +30,8 @@ BEGIN
         BEGIN CATCH
             IF XACT_STATE() <> 0
                 ROLLBACK;
+
+            THROW;
         END CATCH;
 
         SET @Loops -= 1;

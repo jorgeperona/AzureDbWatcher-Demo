@@ -115,6 +115,9 @@ No se garantiza saturación ni E/S física elevada: influyen la caché, los plan
 
 ## 4. Observar los resultados
 
+Para carga recurrente cada dos horas en ambos servidores de la sesión, consulta
+la [configuración de Elastic Jobs](elastic-jobs/README.md), preparada sin activar.
+
 Durante las pruebas, desde otra conexión a la base de datos:
 
 ```sql
@@ -128,7 +131,7 @@ ORDER BY blocking_session_id DESC, session_id;
 - Correlaciona las horas y los identificadores de sesión con bloqueos, esperas, CPU, E/S de datos y del log.
 - Un timeout de bloqueo no es un deadlock. Confirma los deadlocks con los eventos o gráficos de deadlock disponibles en tu plataforma.
 - Ten en cuenta los intervalos de muestreo e ingestión: un evento corto puede no aparecer en una captura periódica.
-- Los mensajes `Deadlock detectado` no son prueba suficiente: ambos generadores muestran ese texto para **cualquier error capturado**, no solo el error 1205. El procedimiento de carga de tabla no informa los errores que captura.
+- Los mensajes no sustituyen a los eventos: Aggressive imprime `Deadlock detectado` para cualquier error capturado. Ultra continúa solo ante el error 1205 y relanza los demás errores; el procedimiento de carga de tabla también relanza sus errores.
 
 [bloqueos.sql](exec/bloqueos.sql) contiene apuntes, no un lote listo para ejecutar: usa encabezados `#` que no son comentarios T-SQL válidos, un usuario de ejemplo y una consulta a `sys.event_log` que no debe tratarse como un historial portable de deadlocks. Consulta las advertencias de la [guía de ejecución](exec/README.md).
 
