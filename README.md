@@ -84,6 +84,7 @@ Registra una línea base antes de generar carga. Empieza con pocas iteraciones y
 | Material | Contenido |
 |---|---|
 | [Laboratorio SQL](sql/README.md) · [English](sql/README.en.md) | Preparación, escenarios, observación y limpieza |
+| [Azure SRE Agent](sre-agent/README.md) | Configuración local, baseline de ADX e instrucciones de análisis de anomalías |
 | [Tablas](sql/CreateTable/README.md) | Datos iniciales y restablecimiento |
 | [Procedimientos](sql/StoredProcedure/README.md) | Parámetros, comportamiento y limitaciones |
 | [Ejecución y diagnóstico](sql/exec/README.md) | Conexiones concurrentes, consultas y precauciones |

@@ -63,6 +63,9 @@ Expected counts are **4, 5, 3, and 5000**. You can also prepare individual scena
 
 Before generating load, record the time, CPU, data I/O, log I/O, sessions, and waits. Record the connection count and parameters for each test. Open another connection for diagnostics and keep monitoring visible.
 
+For Azure SRE Agent setup and comparison of ADX signals against a baseline, see
+the [SRE Agent guide](../sre-agent/README.md).
+
 ## 3. Run the scenarios
 
 Start with a few iterations and test each scenario separately. Run the examples without an outer transaction.

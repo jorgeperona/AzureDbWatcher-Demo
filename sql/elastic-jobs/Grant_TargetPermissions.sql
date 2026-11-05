@@ -2,7 +2,7 @@
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-DECLARE @Identity SYSNAME = N'REPLACE_JOB_AGENT_IDENTITY';
+DECLARE @Identity SYSNAME = N'umi-sqserverjobs';
 DECLARE @Server NVARCHAR(256) = CONVERT(NVARCHAR(256), SERVERPROPERTY('ServerName'));
 
 IF NOT ((@Server = N'datasaturday01' AND DB_NAME() = N'datasaturdaydb01')

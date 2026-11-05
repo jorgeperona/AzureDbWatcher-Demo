@@ -1,0 +1,49 @@
+# Perfil local de referencia; no es un manifiesto de despliegue de Azure SRE Agent.
+profile_version: 1
+
+agent:
+  skill_name: azure-sql-watcher-baseline
+  skill_file: skills/azure-sql-baseline.md
+  execution_mode: analysis_only
+
+telemetry:
+  provider: kusto
+  source: azure-sql-database-watcher
+  cluster_url: "<ADX_CLUSTER_URL>"
+  database: "<WATCHER_DATABASE>"
+  schema_discovery_required: true
+  table_names: discover_from_connected_cluster
+  column_names: discover_from_connected_cluster
+  query_access: read_only
+
+comparison:
+  mode: relative_to_baseline
+  baseline_window_utc: "<START>/<END>"
+  analysis_window_utc: "<START>/<END>"
+  require_same_server_and_database: true
+  require_comparable_workload: true
+  report_percentiles: [50, 95]
+  missing_metric_policy: report_unavailable
+  insufficient_baseline_policy: inconclusive
+
+signals:
+  - id: blocking_and_timeouts
+    evidence: blocking_sessions_lock_waits_wait_duration_timeouts
+    distinguish_from_deadlocks: true
+  - id: confirmed_deadlocks
+    evidence: deadlock_events_or_graphs_and_correlated_error_1205
+    infer_from_generator_messages: false
+  - id: cpu
+    evidence: discover_cpu_metric_and_unit_from_adx_schema
+  - id: data_io
+    evidence: discover_data_io_metric_and_unit_from_adx_schema
+  - id: log_io
+    evidence: discover_log_io_metric_and_unit_from_adx_schema
+  - id: session_and_wait_context
+    evidence: session_counts_blocking_session_ids_wait_types
+
+safety:
+  generate_test_load: false
+  terminate_sessions: false
+  change_azure_resources: false
+  remediate_without_approval: false

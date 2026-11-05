@@ -3,9 +3,9 @@
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-DECLARE @JobServer NVARCHAR(256) = N'REPLACE_JOB_SERVER.database.windows.net';
-DECLARE @JobDatabase SYSNAME = N'REPLACE_JOB_DATABASE';
-DECLARE @Identity SYSNAME = N'REPLACE_JOB_AGENT_IDENTITY';
+DECLARE @JobServer NVARCHAR(256) = N'sqldemodbwatcherjobs.database.windows.net';
+DECLARE @JobDatabase SYSNAME = N'sqldemodbwatcherjobsdb';
+DECLARE @Identity SYSNAME = N'umi-sqserverjobs';
 
 IF @JobServer LIKE N'REPLACE%' OR @JobDatabase LIKE N'REPLACE%' OR @Identity LIKE N'REPLACE%'
     THROW 51000, 'Set the job server, job database and assigned managed identity before running.', 1;

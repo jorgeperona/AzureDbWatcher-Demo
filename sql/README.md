@@ -63,6 +63,9 @@ Los recuentos esperados son **4, 5, 3 y 5000**. También puedes preparar escenar
 
 Antes de generar carga, registra la hora, CPU, E/S de datos, E/S del log, sesiones y esperas. Anota el número de conexiones y los parámetros de cada prueba. Abre otra conexión para diagnóstico y mantén visible la monitorización.
 
+Para configurar Azure SRE Agent y comparar las señales con una baseline de ADX,
+consulta la [guía de SRE Agent](../sre-agent/README.md).
+
 ## 3. Ejecutar los escenarios
 
 Empieza con pocas iteraciones y prueba cada escenario por separado. Ejecuta los ejemplos sin una transacción externa.
