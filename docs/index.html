@@ -165,6 +165,23 @@
           <li><strong>No conoce tu lógica de negocio de forma nativa.</strong> Necesita contexto, una base de conocimiento y, cuando proceda, subagentes especializados.</li>
         </ul>
       </article>
+      <article class="topic-panel">
+        <span class="card-number">ARQUITECTURA / ERRORES DEL LABORATORIO</span>
+        <h3>De las BBDD a la investigación con evidencias</h3>
+        <img class="lab-map" src="assets/sre-agent-architecture.png" alt="Diagrama del laboratorio: dos bases de datos con errores ilustrativos envían telemetría a Azure SQL Database watcher y Azure Data Explorer. Azure SRE Agent consulta ADX en modo de solo lectura y entrega un informe al equipo, sin remediar.">
+        <p class="section-note">Los errores son escenarios de prueba, no telemetría real. SRE Agent consulta la telemetría recopilada en ADX; no se conecta directamente a las BBDD del laboratorio.</p>
+      </article>
+      <article class="topic-panel">
+        <span class="card-number">CONFIGURACIÓN / LABORATORIO AZURE SQL</span>
+        <h3>Configura el agente para investigar la telemetría</h3>
+        <p>El material del repositorio guía la conexión de Azure SRE Agent con Azure Data Explorer, la creación de una skill para comparar señales de Database watcher con una baseline y la captura de resultados. La plantilla de perfil es documentación local: no aprovisiona recursos ni configura un agente remoto.</p>
+        <ul class="content-list">
+          <li><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo/blob/main/sre-agent/README.md">Guía de configuración y análisis de baseline</a></li>
+          <li><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo/blob/main/sre-agent/step-by-step.md">Paso a paso en el portal de Azure SRE Agent</a></li>
+          <li><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo/blob/main/sre-agent/skills/azure-sql-baseline.md">Contenido de la skill de baseline SQL</a></li>
+          <li><a href="https://github.com/jorgeperona/AzureDbWatcher-Demo/blob/main/sre-agent/baseline-profile.yaml">Plantilla local de perfil</a></li>
+        </ul>
+      </article>
       <p class="section-note">Las capacidades dependen de la configuración, las integraciones y la disponibilidad del servicio. <a href="https://learn.microsoft.com/azure/sre-agent/overview">Explorar Azure SRE Agent en Microsoft Learn →</a></p>
     </section>
 
