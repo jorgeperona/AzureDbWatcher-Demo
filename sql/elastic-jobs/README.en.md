@@ -44,6 +44,39 @@ A continuously available schedule does **not** mean constant load between cycles
 Neither CPU saturation, physical I/O nor deadlocks are guaranteed: caching, five
 Ultra rows, available capacity and `TOP 1000` affect the results.
 
+## Identity and connection for each script
+
+`REPLACE_JOB_AGENT_IDENTITY` is the **UAMI name**, not its resource ID,
+client ID or principal/object ID. Use `MANAGED_IDENTITY_NAME` from
+[`infra/.env`](../../infra/.env), or the Bicep output `jobIdentityName`. For example:
+
+```sql
+DECLARE @Identity SYSNAME = N'id-datasaturday-jobs';
+```
+
+Use the same name in both installation scripts. It is used in
+`CREATE USER [id-datasaturday-jobs] FROM EXTERNAL PROVIDER`.
+
+| Script | Connection server and database | Runs |
+|---|---|---|
+| [Grant_TargetPermissions.sql](Grant_TargetPermissions.sql) | `datasaturday01.database.windows.net` → `datasaturdaydb01` | Once in this database |
+| [Grant_TargetPermissions.sql](Grant_TargetPermissions.sql) | `datasaturday02.database.windows.net` → `datasaturdaydb02` | Once in this database |
+| [Configure_StressJobs.sql](Configure_StressJobs.sql) | Control server → `datasaturdayjobs` (or your job database name) | Once, only in the database associated with the agent |
+| [Monitor_StressJobs.sql](Monitor_StressJobs.sql) | The same control server and job database | Whenever you need to inspect status |
+
+**Do not run these scripts in `master`.** Grant permissions in both load databases;
+run configuration and monitoring in the job database, not the load databases.
+Check your connection before proceeding:
+
+```sql
+SELECT CONVERT(NVARCHAR(256), SERVERPROPERTY('ServerName')) AS ServerName,
+       DB_NAME() AS DatabaseName;
+```
+
+Use an authorized Microsoft Entra administrator for installation. Monitoring only
+requires read access to job views, for example through the `jobs_reader` role in
+the job database.
+
 ## Setup without enabling load
 
 New infrastructure can be prepared using the [Bicep template and parameter file](../../infra/README.md)
@@ -78,7 +111,8 @@ verify network access on all three servers before installing jobs.
    Run it **in that job database** with permission to administer jobs, create the
    user and grant permissions. It creates two target groups and four disabled jobs,
    without custom procedures or direct agent metadata modifications.
-7. Run [Monitor_StressJobs.sql](Monitor_StressJobs.sql). Verify four jobs with
+7. In that same job database, run [Monitor_StressJobs.sql](Monitor_StressJobs.sql).
+   It is **read-only**: it does not start load or change schedules. Verify four jobs with
    **`enabled = 0`** and review the groups in the portal: two load targets and one
    control target.
 
@@ -119,7 +153,9 @@ workers remain disabled for scheduling; the coordinator starts them explicitly.
 
 ## Monitoring and stopping
 
-[Monitor_StressJobs.sql](Monitor_StressJobs.sql) reads schedules and the latest 100
+[Monitor_StressJobs.sql](Monitor_StressJobs.sql) runs **in the control server's job
+database** (`datasaturdayjobs` if you kept the example name), not in `master` or
+the load databases. It is read-only and reads schedules and the latest 100
 history rows, including UTC times, targets, lifecycle, execution IDs and messages.
 Inspect workers too: the coordinator does not wait for them.
 

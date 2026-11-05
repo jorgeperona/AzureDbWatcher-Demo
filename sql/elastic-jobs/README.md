@@ -78,7 +78,40 @@ no queda restringido a los tres workers por nombre.
 
 ## 2. Instalar sin activar
 
-Conéctate como administrador autorizado de Microsoft Entra:
+### Identidad y conexión de cada script
+
+`REPLACE_JOB_AGENT_IDENTITY` es el **nombre de la UAMI**, no su resource ID,
+client ID ni principal/object ID. Usa el valor de `MANAGED_IDENTITY_NAME` en
+[`infra/.env`](../../infra/.env) o el output Bicep `jobIdentityName`. Por ejemplo:
+
+```sql
+DECLARE @Identity SYSNAME = N'id-datasaturday-jobs';
+```
+
+Utiliza el mismo nombre en los dos scripts de instalación. Se utiliza para
+`CREATE USER [id-datasaturday-jobs] FROM EXTERNAL PROVIDER`.
+
+| Script | Servidor y base de datos de la conexión | Ejecuciones |
+|---|---|---|
+| [Grant_TargetPermissions.sql](Grant_TargetPermissions.sql) | `datasaturday01.database.windows.net` → `datasaturdaydb01` | Una vez en esta base |
+| [Grant_TargetPermissions.sql](Grant_TargetPermissions.sql) | `datasaturday02.database.windows.net` → `datasaturdaydb02` | Una vez en esta base |
+| [Configure_StressJobs.sql](Configure_StressJobs.sql) | Servidor de control → `datasaturdayjobs` (o tu nombre de base de jobs) | Una vez, solo en la base asociada al agente |
+| [Monitor_StressJobs.sql](Monitor_StressJobs.sql) | El mismo servidor de control y la misma base de jobs | Cuando quieras consultar el estado |
+
+**No ejecutes estos scripts en `master`.** El script de permisos se ejecuta en
+las dos bases de carga; configuración y monitorización se ejecutan en la base
+de jobs, no en las bases de carga. Para confirmar tu conexión antes de continuar:
+
+```sql
+SELECT CONVERT(NVARCHAR(256), SERVERPROPERTY('ServerName')) AS ServerName,
+       DB_NAME() AS DatabaseName;
+```
+
+Conéctate como administrador autorizado de Microsoft Entra para instalar.
+La monitorización solo necesita permisos de lectura de las vistas de jobs,
+por ejemplo mediante el rol `jobs_reader` en la base de jobs.
+
+### Orden de instalación
 
 1. Edita `REPLACE_JOB_AGENT_IDENTITY` en
    [Grant_TargetPermissions.sql](Grant_TargetPermissions.sql) y ejecútalo una vez en
@@ -89,7 +122,8 @@ Conéctate como administrador autorizado de Microsoft Entra:
    Conéctate a esa base de jobs y ejecútalo. Requiere permisos para administrar jobs,
    crear el usuario y conceder permisos. Crea dos grupos de destinos y cuatro jobs.
    No modifica tablas internas del agente ni crea procedimientos propios en su base.
-3. Ejecuta [Monitor_StressJobs.sql](Monitor_StressJobs.sql). Debe mostrar cuatro jobs,
+3. En esa misma base de jobs, ejecuta [Monitor_StressJobs.sql](Monitor_StressJobs.sql).
+   Es de **solo lectura**: no inicia carga ni cambia la programación. Debe mostrar cuatro jobs,
    todos con **`enabled = 0`**, dos destinos de carga y uno de control al revisar
    los grupos en el portal.
 
@@ -136,7 +170,9 @@ No hay reintentos automáticos de pasos para evitar repetir parcialmente la carg
 
 ## 4. Observar y detener
 
-[Monitor_StressJobs.sql](Monitor_StressJobs.sql) consulta programación y últimas
+[Monitor_StressJobs.sql](Monitor_StressJobs.sql) se ejecuta **en la base de jobs
+del servidor de control** (`datasaturdayjobs` si mantuviste el nombre del ejemplo),
+no en `master` ni en las bases de carga. Es de solo lectura y consulta programación y últimas
 100 filas de historial, con UTC, destino, estado, ID de ejecución y `last_message`.
 Comprueba también los workers: el coordinador no espera a su finalización.
 
