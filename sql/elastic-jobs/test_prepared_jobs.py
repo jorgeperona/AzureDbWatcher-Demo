@@ -2,6 +2,7 @@
 
 import re
 import unittest
+from datetime import datetime, timedelta
 from pathlib import Path
 
 
@@ -40,6 +41,25 @@ class PreparedJobsTests(unittest.TestCase):
         self.assertIn("@schedule_interval_count = 2", CONFIG)
         self.assertNotIn("@schedule_end_time", executable)
 
+    def test_schedule_anchor_is_next_whole_hour(self):
+        self.assertIn("@schedule_start_time = @FirstRunUtc", CONFIG)
+        formula = "HOUR, DATEDIFF(HOUR, @ScheduleEpoch, SYSUTCDATETIME()) + 1, @ScheduleEpoch"
+        self.assertIn(formula, CONFIG)
+        for document in ("README.md", "README.en.md"):
+            self.assertIn(formula, (HERE / document).read_text())
+        epoch = datetime(2000, 1, 1)
+        for now in (
+            datetime(2026, 11, 6, 3, 53),
+            datetime(2026, 11, 6, 4),
+            datetime(2026, 12, 31, 23, 59, 59),
+        ):
+            with self.subTest(now=now):
+                elapsed_hours = (now - epoch) // timedelta(hours=1)
+                anchor = epoch + timedelta(hours=elapsed_hours + 1)
+                self.assertEqual(anchor, now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
+                self.assertGreater(anchor, now)
+                self.assertEqual((anchor + timedelta(hours=2)).minute, 0)
+
     def test_exact_load_targets_and_counts(self):
         targets = re.findall(
             r"@server_name = N'([^']+)',\s*@database_name = N'([^']+)'", CONFIG
@@ -52,7 +72,7 @@ class PreparedJobsTests(unittest.TestCase):
             ],
         )
         self.assertIn("EXEC SalesLT.GenerateDeadlocksUltra @Loops = 1000;", command("Deadlocks"))
-        self.assertIn("EXEC SalesLT.TableLockAndCpuIoStress @Loops = 100000;", command("CpuIo"))
+        self.assertIn("EXEC SalesLT.TableLockAndCpuIoStress @Loops = 100;", command("CpuIo"))
         self.assertEqual(CONFIG.count("@command = @Deadlocks"), 2)
         self.assertEqual(CONFIG.count("@command = @CpuIo"), 1)
         self.assertEqual(CONFIG.count("@max_parallelism = 2"), 3)

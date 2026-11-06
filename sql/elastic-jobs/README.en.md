@@ -136,10 +136,13 @@ Start the coordinator again while workers are active: expect 51001 and **no new
 workers**. Verify six per-target executions and their sessions, actual 1205 events,
 CPU, Data IO, Log IO, waits and errors, correlated with watcher/SRE.
 Restore the requested aggressive counts, let the test finish, then enable **only
-the coordinator** with a future UTC anchor:
+the coordinator** anchored to the next whole UTC hour.
+This block also updates the schedule of an existing coordinator:
 
 ```sql
-DECLARE @FirstRunUtc DATETIME2 = DATEADD(MINUTE, 10, SYSUTCDATETIME());
+DECLARE @ScheduleEpoch DATETIME2 = '2000-01-01T00:00:00';
+DECLARE @FirstRunUtc DATETIME2 = DATEADD(
+    HOUR, DATEDIFF(HOUR, @ScheduleEpoch, SYSUTCDATETIME()) + 1, @ScheduleEpoch);
 EXEC jobs.sp_update_job
     @job_name = N'DemoStress-Coordinator',
     @enabled = 1,
@@ -148,7 +151,12 @@ EXEC jobs.sp_update_job
     @schedule_interval_count = 2;
 ```
 
-This example starts ten minutes later and repeats every two hours. All three
+This example schedules the first start at the next whole UTC hour and repeats
+every two hours: configured at 03:53 UTC, it schedules 04:00, 06:00, 08:00 UTC, etc.
+Even-numbered hours are not mandatory; they depend on the initial anchor.
+Actual execution may start later due to service scheduling; this is not real-time.
+Editing the configuration file does not update existing jobs: use the
+`jobs.sp_update_job` block above rather than reinstalling all jobs. All three
 workers remain disabled for scheduling; the coordinator starts them explicitly.
 
 ## Monitoring and stopping

@@ -21,17 +21,21 @@ Todos los objetos pertenecen al esquema `SalesLT`.
 ## Uso recomendado
 
 ```sql
+-- Escenario de deadlocks agresivos:
 -- Ejecutar simultáneamente en dos o más conexiones:
 EXEC SalesLT.GenerateDeadlocksAggressive @Loops = 10;
 
 -- Variante alternativa, también con conexiones concurrentes:
 EXEC SalesLT.GenerateDeadlocksUltra @Loops = 20;
 
+
+-- Escenario de bloqueo largo y acceso a fila bloqueada:
 -- Conexión A:
 EXEC SalesLT.GenerateLongBlock @Id = 1, @HoldSeconds = 30;
 -- Conexión B, mientras A mantiene el bloqueo:
 EXEC SalesLT.TryAccessBlockedRow @Id = 1;
 
+-- Escenario de carga de tabla y CPU/IO independiente:
 -- Prueba independiente de carga de tabla:
 EXEC SalesLT.TableLockAndCpuIoStress @Loops = 10;
 ```

@@ -80,7 +80,7 @@ IF OBJECT_ID(N''SalesLT.TableLockAndCpuIoStress'', N''P'') IS NULL
     THROW 51000, ''Install the stress procedures before starting the jobs.'', 1;
 IF (SELECT COUNT(*) FROM SalesLT.TableLockStress) <> 5000
     THROW 51000, ''TableLockStress requires the 5000 laboratory rows.'', 1;
-EXEC SalesLT.TableLockAndCpuIoStress @Loops = 100000;';
+EXEC SalesLT.TableLockAndCpuIoStress @Loops = 100;';
 
     EXEC jobs.sp_add_job @job_name = N'DemoStress-Deadlocks-A', @enabled = 0;
     EXEC jobs.sp_add_jobstep
@@ -144,10 +144,15 @@ BEGIN CATCH
     THROW;
 END CATCH;';
 
+    DECLARE @ScheduleEpoch DATETIME2 = '2000-01-01T00:00:00';
+    DECLARE @FirstRunUtc DATETIME2 = DATEADD(
+        HOUR, DATEDIFF(HOUR, @ScheduleEpoch, SYSUTCDATETIME()) + 1, @ScheduleEpoch);
+
     EXEC jobs.sp_add_job
         @job_name = N'DemoStress-Coordinator',
-        @description = N'Every 2 hours UTC; omit the whole cycle if any previous worker is active.',
+        @description = N'Every 2 hours, anchored to a whole UTC hour; omit the cycle if any previous worker is active.',
         @enabled = 0,
+        @schedule_start_time = @FirstRunUtc,
         @schedule_interval_type = N'Hours',
         @schedule_interval_count = 2;
     EXEC jobs.sp_add_jobstep
@@ -165,6 +170,6 @@ BEGIN CATCH
     THROW;
 END CATCH;
 
-SELECT job_name, enabled, schedule_interval_type, schedule_interval_count
+SELECT job_name, enabled, schedule_interval_type, schedule_interval_count, schedule_start_time
 FROM jobs.jobs
 WHERE job_name LIKE N'DemoStress-%';

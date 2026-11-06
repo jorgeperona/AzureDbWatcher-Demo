@@ -107,7 +107,7 @@ SELECT CONVERT(NVARCHAR(256), SERVERPROPERTY('ServerName')) AS ServerName,
        DB_NAME() AS DatabaseName;
 ```
 
-Conéctate como administrador autorizado de Microsoft Entra para instalar.
+Conéctate a las Bases de datos como administrador autorizado de Microsoft Entra para instalar.
 La monitorización solo necesita permisos de lectura de las vistas de jobs,
 por ejemplo mediante el rol `jobs_reader` en la base de jobs.
 
@@ -152,10 +152,13 @@ esperas y errores con watcher y SRE. No se garantiza saturación ni E/S física:
 Ultra trabaja con cinco filas, hay caché y el producto cruzado se limita a `TOP 1000`.
 
 Después de restaurar los valores agresivos y dejar terminar la prueba, activa
-**solo** el coordinador con un anclaje UTC futuro:
+**solo** el coordinador con un anclaje a la siguiente hora en punto UTC.
+Este bloque también actualiza el horario de un coordinador ya existente:
 
 ```sql
-DECLARE @FirstRunUtc DATETIME2 = DATEADD(MINUTE, 10, SYSUTCDATETIME());
+DECLARE @ScheduleEpoch DATETIME2 = '2000-01-01T00:00:00';
+DECLARE @FirstRunUtc DATETIME2 = DATEADD(
+    HOUR, DATEDIFF(HOUR, @ScheduleEpoch, SYSUTCDATETIME()) + 1, @ScheduleEpoch);
 EXEC jobs.sp_update_job
     @job_name = N'DemoStress-Coordinator',
     @enabled = 1,
@@ -164,7 +167,12 @@ EXEC jobs.sp_update_job
     @schedule_interval_count = 2;
 ```
 
-Ese ejemplo comienza diez minutos después de ejecutarlo y repite cada dos horas.
+Ese ejemplo programa el primer inicio en la siguiente hora en punto UTC y repite
+cada dos horas: si se configura a las 03:53 UTC, los inicios serán 04:00, 06:00,
+08:00 UTC, etc. No obliga a que siempre sean horas pares: depende del primer anclaje.
+El inicio real puede retrasarse por la planificación del servicio; no es tiempo real.
+Editar el fichero de configuración no actualiza jobs existentes: utiliza el bloque
+`jobs.sp_update_job` anterior, no reinstales todos los jobs.
 Los tres workers siguen con `enabled = 0`: el coordinador los inicia explícitamente.
 No hay reintentos automáticos de pasos para evitar repetir parcialmente la carga.
 
