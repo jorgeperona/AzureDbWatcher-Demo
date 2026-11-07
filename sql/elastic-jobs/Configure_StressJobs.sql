@@ -71,7 +71,7 @@ IF OBJECT_ID(N''SalesLT.GenerateDeadlocksUltra'', N''P'') IS NULL
     THROW 51000, ''Install the stress procedures before starting the jobs.'', 1;
 IF (SELECT COUNT(*) FROM SalesLT.DeadlockUltra WHERE Id BETWEEN 1 AND 5) <> 5
     THROW 51000, ''DeadlockUltra requires rows 1 through 5.'', 1;
-EXEC SalesLT.GenerateDeadlocksUltra @Loops = 1000;';
+EXEC SalesLT.GenerateDeadlocksUltra @Loops = 100;';
 
     DECLARE @CpuIo NVARCHAR(MAX) = N'
 SET NOCOUNT ON;
@@ -80,7 +80,7 @@ IF OBJECT_ID(N''SalesLT.TableLockAndCpuIoStress'', N''P'') IS NULL
     THROW 51000, ''Install the stress procedures before starting the jobs.'', 1;
 IF (SELECT COUNT(*) FROM SalesLT.TableLockStress) <> 5000
     THROW 51000, ''TableLockStress requires the 5000 laboratory rows.'', 1;
-EXEC SalesLT.TableLockAndCpuIoStress @Loops = 100;';
+EXEC SalesLT.TableLockAndCpuIoStress @Loops = 1000;';
 
     EXEC jobs.sp_add_job @job_name = N'DemoStress-Deadlocks-A', @enabled = 0;
     EXEC jobs.sp_add_jobstep
